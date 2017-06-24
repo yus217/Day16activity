@@ -8,6 +8,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -31,6 +32,7 @@ import com.google.android.gms.tasks.Task;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private Marker mMarker;
 
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
@@ -56,8 +58,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 for (Location location : locationResult.getLocations()) {
-                    lat = location.getAltitude();
-                    lng = location.getLatitude();
+                    double oldLat = lat;
+                    double oldLng = lng;
+                    lat = location.getLatitude();
+                    lng = location.getLongitude();
+
+                    if (mMarker != null && (lat != oldLat || lng != oldLng)){
+                        mMarker.setPosition(new LatLng(lat, lng));
+                        mMarker.setVisible(true);
+                    }
                 }
 
                 Log.i("New Loc Result", locationResult.toString());
@@ -115,6 +124,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
+
+        getLocationUpdates();
     }
 
     public void getLocationUpdates() {
@@ -142,7 +153,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         LatLng loc = new LatLng(lat, lng);
-        mMap.addMarker(new MarkerOptions().position(loc).title("New Marker"));
+        mMarker = mMap.addMarker(new MarkerOptions().position(loc).title("New Marker"));
+        mMarker.setVisible(true);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
 
 
